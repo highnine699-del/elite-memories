@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elite Memories</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="upload-card">
+      <h1 class="title">Elite Memories</h1>
+      <p class="subtitle">Share your moments with the squad</p>
+      
+      <div id="upload-section">
+        <div class="drop-zone" id="drop-zone">
+          <div class="drop-zone-content">
+            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="17 8 12 3 7 8"></polyline>
+              <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <p class="drop-text">Drag and drop photos or videos here</p>
+            <p class="drop-subtext">or</p>
+            <button class="select-button" id="select-button">Choose Files</button>
+            <input type="file" id="file-input" multiple accept="image/*,video/*" hidden>
+          </div>
+        </div>
+        
+        <div class="form-section">
+          <div class="form-group">
+            <label for="uploader-name">Your name (optional)</label>
+            <input type="text" id="uploader-name" placeholder="Who's sharing?">
+          </div>
+          <div class="form-group">
+            <label for="caption">Caption (optional)</label>
+            <textarea id="caption" placeholder="Add a caption for all uploads..." rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      
+      <div id="success-section" class="success-section hidden">
+        <svg class="success-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>
+        <h2 class="success-title">Thanks!</h2>
+        <p class="success-text">Your memories have been saved ❤️</p>
+        <button class="upload-more-button" id="upload-more">Upload More</button>
+      </div>
+      
+      <div id="queue-section" class="queue-section hidden">
+        <h3 class="queue-title">Upload Queue</h3>
+        <div id="queue-list" class="queue-list"></div>
+      </div>
+    </div>
+    
+    <div class="qr-section">
+      <img id="qr-code" src="" alt="QR Code" class="qr-code">
+      <p class="qr-text">Scan to upload from your phone</p>
+    </div>
+  </div>
+  
+  <script src="https://unpkg.com/tus-js-client@4/dist/tus.min.js"></script>
+  <script type="module" src="app-supabase.js"></script>
+</body>
+</html>
