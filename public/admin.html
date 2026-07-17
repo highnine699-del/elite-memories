@@ -3,43 +3,104 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Elite Memories - Admin</title>
+  <title>Elite Memories - Admin Dashboard</title>
+  <meta name="description" content="Admin dashboard for Elite Memories private archive">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="container">
-    <div class="admin-card">
-      <h1 class="title">Admin Dashboard</h1>
-      
-      <div id="login-section" class="login-section">
-        <div class="form-group">
-          <label for="admin-password">Password</label>
-          <input type="password" id="admin-password" placeholder="Enter admin password">
-        </div>
-        <button class="login-button" id="login-button">Login</button>
-        <p id="login-error" class="error-text hidden"></p>
-      </div>
-      
-      <div id="dashboard-section" class="dashboard-section hidden">
-        <div class="search-section">
-          <input type="text" id="search-input" placeholder="Search by filename, uploader, or caption..." class="search-input">
-        </div>
-        
-        <div id="uploads-grid" class="uploads-grid"></div>
-        
-        <div id="pagination" class="pagination hidden">
-          <button class="pagination-button" id="prev-button" disabled>Previous</button>
-          <span class="pagination-info" id="pagination-info"></span>
-          <button class="pagination-button" id="next-button" disabled>Next</button>
-        </div>
-        
-        <div id="no-results" class="no-results hidden">
-          <p>No uploads found</p>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- Animated Background -->
+  <div class="background"></div>
   
+  <!-- Skip Link for Accessibility -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+  
+  <!-- Floating Navigation -->
+  <nav class="navigation" id="navigation">
+    <div class="navigation-brand">
+      <span class="navigation-logo">Elite Memories</span>
+      <span class="navigation-subtitle">Admin Dashboard</span>
+    </div>
+    <div class="navigation-links">
+      <a href="index.html" class="navigation-link">Upload</a>
+      <a href="#" class="navigation-link primary">Dashboard</a>
+    </div>
+  </nav>
+  
+  <!-- Main Content -->
+  <main id="main-content">
+    <!-- Login Section -->
+    <section id="login-section" class="container" style="padding: var(--space-4xl) var(--space-lg);">
+      <div class="upload-card" style="max-width: 400px; margin: 0 auto; text-align: center;">
+        <h1 class="title" style="margin-bottom: var(--space-lg);">Admin Login</h1>
+        <p class="subtitle" style="margin-bottom: var(--space-xl);">Access the private archive dashboard</p>
+        
+        <div class="form-group" style="text-align: left;">
+          <label for="admin-password">Password</label>
+          <input type="password" id="admin-password" placeholder="Enter admin password" autocomplete="current-password">
+        </div>
+        
+        <button class="select-button" id="login-button" type="button" style="width: 100%; margin-top: var(--space-lg);">Login</button>
+        
+        <p id="login-error" class="error-text hidden" style="margin-top: var(--space-md);"></p>
+      </div>
+    </section>
+    
+    <!-- Dashboard Section -->
+    <section id="dashboard-section" class="container hidden" style="padding: var(--space-4xl) var(--space-lg);">
+      <!-- Dashboard Header -->
+      <div style="margin-bottom: var(--space-2xl);">
+        <h1 class="title" style="font-size: 2.5rem;">Dashboard</h1>
+        <p class="subtitle">Manage and explore the memory archive</p>
+      </div>
+      
+      <!-- Search Section -->
+      <div class="upload-card" style="padding: var(--space-lg); margin-bottom: var(--space-xl);">
+        <div style="position: relative;">
+          <input 
+            type="text" 
+            id="search-input" 
+            placeholder="Search by filename, uploader, or caption..." 
+            class="search-input"
+            style="width: 100%;"
+            aria-label="Search uploads"
+          >
+          <svg style="position: absolute; right: var(--space-lg); top: 50%; transform: translateY(-50%); width: 20px; height: 20px; color: var(--color-text-muted); pointer-events: none;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+        </div>
+      </div>
+      
+      <!-- Uploads Grid -->
+      <div id="uploads-grid" class="uploads-grid"></div>
+      
+      <!-- Pagination -->
+      <div id="pagination" class="pagination hidden" style="display: flex; align-items: center; justify-content: center; gap: var(--space-lg); padding: var(--space-xl) 0;">
+        <button class="button button-secondary" id="prev-button" disabled>Previous</button>
+        <span class="pagination-info" id="pagination-info" style="color: var(--color-text-secondary);"></span>
+        <button class="button button-secondary" id="next-button" disabled>Next</button>
+      </div>
+      
+      <!-- No Results -->
+      <div id="no-results" class="hidden" style="text-align: center; padding: var(--space-4xl);">
+        <svg style="width: 64px; height: 64px; color: var(--color-text-muted); margin-bottom: var(--space-lg);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <p style="color: var(--color-text-muted); font-size: 1.125rem;">No uploads found</p>
+      </div>
+    </section>
+  </main>
+  
+  <!-- Footer -->
+  <footer style="text-align: center; padding: var(--space-2xl) var(--space-lg); color: var(--color-text-muted); font-size: 0.875rem; border-top: 1px solid var(--color-border);">
+    <p>© 2024 Elite Memories. Admin Dashboard.</p>
+  </footer>
+  
+  <!-- Script -->
   <script src="admin-supabase.js"></script>
 </body>
 </html>
