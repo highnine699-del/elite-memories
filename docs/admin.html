@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Elite Memories - Admin</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <div class="admin-card">
+      <h1 class="title">Admin Dashboard</h1>
+      
+      <div id="login-section" class="login-section">
+        <div class="form-group">
+          <label for="admin-password">Password</label>
+          <input type="password" id="admin-password" placeholder="Enter admin password">
+        </div>
+        <button class="login-button" id="login-button">Login</button>
+        <p id="login-error" class="error-text hidden"></p>
+      </div>
+      
+      <div id="dashboard-section" class="dashboard-section hidden">
+        <div class="search-section">
+          <input type="text" id="search-input" placeholder="Search by filename, uploader, or caption..." class="search-input">
+        </div>
+        
+        <div id="uploads-grid" class="uploads-grid"></div>
+        
+        <div id="pagination" class="pagination hidden">
+          <button class="pagination-button" id="prev-button" disabled>Previous</button>
+          <span class="pagination-info" id="pagination-info"></span>
+          <button class="pagination-button" id="next-button" disabled>Next</button>
+        </div>
+        
+        <div id="no-results" class="no-results hidden">
+          <p>No uploads found</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="admin-supabase.js"></script>
+</body>
+</html>
