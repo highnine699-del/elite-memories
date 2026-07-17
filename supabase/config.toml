@@ -1,0 +1,13 @@
+project_id = "cerlfqylakobkxnmweij"
+
+[functions.admin-login]
+verify_jwt = false
+
+[functions.admin-list]
+verify_jwt = false
+
+[functions.admin-download]
+verify_jwt = false
+
+[functions.admin-delete]
+verify_jwt = false

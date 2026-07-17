@@ -153,7 +153,7 @@ async function fetchUploads() {
   }
 }
 
-function renderUploads(uploads, hasMore) {
+async function renderUploads(uploads, hasMore) {
   uploadsGrid.innerHTML = '';
 
   if (uploads.length === 0) {
@@ -164,8 +164,10 @@ function renderUploads(uploads, hasMore) {
 
   noResults.classList.add('hidden');
 
-  for (const upload of uploads) {
-    const card = createUploadCard(upload);
+  // Fetch every card's signed-URL preview in parallel, then append in
+  // original order once all are ready.
+  const cards = await Promise.all(uploads.map(upload => createUploadCard(upload)));
+  for (const card of cards) {
     uploadsGrid.appendChild(card);
   }
 
@@ -173,11 +175,13 @@ function renderUploads(uploads, hasMore) {
   updatePagination(hasMore);
 }
 
-function createUploadCard(upload) {
+async function createUploadCard(upload) {
   const card = document.createElement('div');
   card.className = 'upload-card-item';
 
-  const preview = createPreview(upload);
+  // createPreview is async (it fetches a signed URL) — must be awaited
+  // or appendChild receives a Promise instead of a Node.
+  const preview = await createPreview(upload);
   const info = createInfo(upload);
   const actions = createActions(upload);
 
