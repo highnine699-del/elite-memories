@@ -1,45 +1,396 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Elite Memories - Admin</title>
+  <title>Elite Memories — Admin</title>
+  <meta name="description" content="Private admin dashboard for the Elite Memories archive.">
+  <meta name="theme-color" content="#08101A">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <style>
+    /* -------------------------------------------------------
+       Admin-only styles — scoped here so they don't pollute
+       the main stylesheet.
+       ------------------------------------------------------- */
+
+    /* Login screen — vertically centered, card max-width */
+    .admin-login-wrap {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: var(--sp-6);
+      padding-top: 100px;
+      /* clear nav */
+    }
+
+    .admin-login-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--color-surface-glass);
+      backdrop-filter: blur(var(--blur-md));
+      -webkit-backdrop-filter: blur(var(--blur-md));
+      border: 1px solid var(--color-border);
+      border-top-color: var(--color-border-bright);
+      border-left-color: var(--color-border-bright);
+      border-radius: var(--r-2xl);
+      padding: var(--sp-10);
+      box-shadow: var(--sh-xl), inset 0 1px 0 var(--color-border-bright);
+      position: relative;
+      overflow: hidden;
+      animation: cardUp 0.65s var(--ease-expo-out) both;
+    }
+
+    /* Top-edge shimmer */
+    .admin-login-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 0%, var(--color-border-bright) 50%, transparent 100%);
+      pointer-events: none;
+    }
+
+    /* Brand mark centered above the form */
+    .login-brand {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--sp-3);
+      margin-bottom: var(--sp-8);
+      text-align: center;
+    }
+
+    .login-brand-icon {
+      width: 52px;
+      height: 52px;
+      background: var(--color-primary-soft);
+      border: 1px solid var(--color-primary-border);
+      border-radius: var(--r-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--color-primary);
+    }
+
+    .login-brand-name {
+      font-family: var(--font-display);
+      font-size: var(--text-xl);
+      font-weight: 700;
+      letter-spacing: -0.025em;
+      color: var(--color-text-100);
+    }
+
+    .login-brand-sub {
+      font-size: var(--text-sm);
+      color: var(--color-text-400);
+      margin-top: -var(--sp-1);
+    }
+
+    /* Login button — full width */
+    .login-button {
+      width: 100%;
+      margin-top: var(--sp-5);
+      background: linear-gradient(155deg, #5F9AFF 0%, #3A72E0 55%, #2A5EC9 100%);
+      color: #fff;
+      padding: 0.75rem var(--sp-6);
+      border: none;
+      border-radius: var(--r-lg);
+      font-size: var(--text-base);
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: var(--sh-glow), inset 0 1px 0 rgba(255, 255, 255, 0.20);
+      transition:
+        transform var(--dur-fast) var(--ease-spring),
+        box-shadow var(--dur-normal) var(--ease-default);
+      will-change: transform;
+    }
+
+    .login-button:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--sh-glow-lg), 0 5px 16px rgba(0, 0, 0, 0.40);
+    }
+
+    .login-button:active {
+      transform: scale(0.98);
+    }
+
+    .login-button:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    /* -------------------------------------------------------
+       Dashboard
+       ------------------------------------------------------- */
+    .dashboard-wrap {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 100px var(--sp-6) var(--sp-16);
+    }
+
+    .dashboard-header {
+      margin-bottom: var(--sp-10);
+    }
+
+    .dashboard-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.75rem, 4vw, 2.75rem);
+      font-weight: 700;
+      letter-spacing: -0.035em;
+      color: var(--color-text-100);
+      margin-bottom: var(--sp-2);
+    }
+
+    .dashboard-subtitle {
+      font-size: var(--text-base);
+      color: var(--color-text-400);
+      line-height: 1.6;
+    }
+
+    /* Search bar wrapper */
+    .search-wrap {
+      position: relative;
+      margin-bottom: var(--sp-8);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: var(--sp-4);
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--color-text-400);
+      pointer-events: none;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: var(--sp-3) var(--sp-4) var(--sp-3) calc(var(--sp-4) + 28px);
+    }
+
+    /* Pagination row */
+    .pagination {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--sp-5);
+      padding: var(--sp-8) 0;
+    }
+
+    /* Empty/no-results state */
+    .empty-state {
+      text-align: center;
+      padding: var(--sp-20) var(--sp-6);
+      color: var(--color-text-400);
+    }
+
+    .empty-state-icon {
+      width: 56px;
+      height: 56px;
+      margin: 0 auto var(--sp-5);
+      opacity: 0.30;
+    }
+
+    .empty-state-text {
+      font-size: var(--text-md);
+      color: var(--color-text-300);
+      margin-bottom: var(--sp-2);
+    }
+
+    .empty-state-sub {
+      font-size: var(--text-sm);
+      opacity: 0.65;
+    }
+
+    /* -------------------------------------------------------
+       Responsive overrides
+       ------------------------------------------------------- */
+    @media (max-width: 640px) {
+      .dashboard-wrap {
+        padding-top: 88px;
+        padding-left: var(--sp-4);
+        padding-right: var(--sp-4);
+      }
+
+      .admin-login-card {
+        padding: var(--sp-6);
+      }
+    }
+  </style>
 </head>
+
 <body>
-  <div class="container">
-    <div class="admin-card">
-      <h1 class="title">Admin Dashboard</h1>
-      
-      <div id="login-section" class="login-section">
-        <div class="form-group">
-          <label for="admin-password">Password</label>
-          <input type="password" id="admin-password" placeholder="Enter admin password">
-        </div>
-        <button class="login-button" id="login-button">Login</button>
-        <p id="login-error" class="error-text hidden"></p>
-      </div>
-      
-      <div id="dashboard-section" class="dashboard-section hidden">
-        <div class="search-section">
-          <input type="text" id="search-input" placeholder="Search by filename, uploader, or caption..." class="search-input">
-        </div>
-        
-        <div id="uploads-grid" class="uploads-grid"></div>
-        
-        <div id="pagination" class="pagination hidden">
-          <button class="pagination-button" id="prev-button" disabled>Previous</button>
-          <span class="pagination-info" id="pagination-info"></span>
-          <button class="pagination-button" id="next-button" disabled>Next</button>
-        </div>
-        
-        <div id="no-results" class="no-results hidden">
-          <p>No uploads found</p>
-        </div>
+
+  <!-- BACKGROUND — same 7-layer system as main page -->
+  <div class="background" aria-hidden="true">
+    <div class="bg-radial"></div>
+    <div class="bg-lights"></div>
+    <div class="bg-hero-glow"></div>
+  </div>
+
+  <a href="#main-content" class="skip-link">Skip to main content</a>
+
+  <!-- ======================================================
+       NAVIGATION — same brand mark as index
+       ====================================================== -->
+  <nav class="navigation" id="navigation" role="navigation" aria-label="Main navigation">
+
+    <div class="navigation-brand">
+      <!-- EM brand mark -->
+      <svg class="brand-mark brand-mark-sm" viewBox="0 0 24 24" fill="none" aria-hidden="true"
+        style="color:var(--color-primary);">
+        <rect x="3" y="5" width="15" height="13" rx="1.5" stroke="currentColor" stroke-width="1.4" opacity="0.35" />
+        <rect x="5" y="3.5" width="15" height="13" rx="1.5" stroke="currentColor" stroke-width="1.4" opacity="0.6" />
+        <rect x="7" y="2" width="15" height="13" rx="1.5" stroke="currentColor" stroke-width="1.75" />
+        <path d="M10 6.5v5M10 6.5l2.5 2.5L15 6.5M15 6.5v5" stroke="currentColor" stroke-width="1.4"
+          stroke-linecap="round" stroke-linejoin="round" />
+      </svg>
+      <div>
+        <div class="navigation-logo">Elite Memories</div>
+        <div class="navigation-subtitle">Admin Dashboard</div>
       </div>
     </div>
-  </div>
-  
+
+    <div class="navigation-links">
+      <a href="index.html" class="navigation-link icon-with-text">
+        <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+          <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
+        <span class="link-label">Archive</span>
+      </a>
+      <a href="#" class="navigation-link primary icon-with-text" aria-current="page">
+        <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg>
+        <span class="link-label">Dashboard</span>
+      </a>
+    </div>
+
+  </nav>
+
+  <main id="main-content">
+
+    <!-- ======================================================
+         LOGIN SECTION
+         ====================================================== -->
+    <section id="login-section" aria-labelledby="login-heading">
+      <div class="admin-login-wrap">
+        <div class="admin-login-card">
+
+          <!-- Brand -->
+          <div class="login-brand">
+            <div class="login-brand-icon">
+              <svg class="icon icon-2xl" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+              </svg>
+            </div>
+            <div>
+              <div class="login-brand-name">Admin Access</div>
+              <div class="login-brand-sub">Elite Memories · Landmark University</div>
+            </div>
+          </div>
+
+          <h1 class="title" id="login-heading" style="font-size:var(--text-xl);margin-bottom:var(--sp-1);">
+            Sign In
+          </h1>
+          <p class="subtitle" style="margin-bottom:var(--sp-6);">
+            Enter your password to access the archive dashboard.
+          </p>
+
+          <div class="form-group">
+            <label for="admin-password">Password</label>
+            <input type="password" id="admin-password" placeholder="Enter admin password"
+              autocomplete="current-password">
+          </div>
+
+          <button class="login-button" id="login-button" type="button">
+            Access the Archive
+          </button>
+
+          <p id="login-error" class="error-text hidden" style="margin-top:var(--sp-4);text-align:center;"></p>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================
+         DASHBOARD SECTION
+         ====================================================== -->
+    <section id="dashboard-section" class="hidden" aria-labelledby="dashboard-heading">
+      <div class="dashboard-wrap">
+
+        <div class="dashboard-header">
+          <h1 class="dashboard-title" id="dashboard-heading">The Archive</h1>
+          <p class="dashboard-subtitle">
+            Browse, search, download, or remove memories from the collection.
+          </p>
+        </div>
+
+        <!-- Search -->
+        <div class="search-wrap">
+          <svg class="icon icon-md search-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input type="text" id="search-input" class="search-input" placeholder="Search by name, uploader, or caption…"
+            aria-label="Search the archive">
+        </div>
+
+        <!-- Grid -->
+        <div id="uploads-grid" class="uploads-grid" role="list" aria-label="Memory archive"></div>
+
+        <!-- Pagination -->
+        <div id="pagination" class="pagination hidden">
+          <button class="button button-secondary" id="prev-button" disabled>
+            <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+              <polyline points="15 18 9 12 15 6" />
+            </svg>
+            Previous
+          </button>
+          <span class="pagination-info" id="pagination-info"></span>
+          <button class="button button-secondary" id="next-button" disabled>
+            Next
+            <svg class="icon icon-sm" viewBox="0 0 24 24" aria-hidden="true">
+              <polyline points="9 18 15 12 9 6" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- No results -->
+        <div id="no-results" class="empty-state hidden">
+          <svg class="empty-state-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="11" cy="11" r="8" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <p class="empty-state-text">No memories found</p>
+          <p class="empty-state-sub">Try a different search, or the archive may be empty.</p>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======================================================
+       FOOTER
+       ====================================================== -->
+  <footer class="footer-minimal" role="contentinfo">
+    <p class="footer-copyright">© 2026 Elite Memories</p>
+    <p class="footer-tagline">Preserving today's moments so they can become tomorrow's stories.</p>
+  </footer>
+
   <script src="admin-supabase.js"></script>
+
 </body>
+
 </html>
