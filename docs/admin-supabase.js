@@ -36,16 +36,16 @@ function setupEventListeners() {
   adminPasswordInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter') handleLogin();
   });
-  
+
   searchInput.addEventListener('input', handleSearchInput);
-  
+
   prevButton.addEventListener('click', () => {
     if (currentPage > 1) {
       currentPage--;
       fetchUploads();
     }
   });
-  
+
   nextButton.addEventListener('click', () => {
     currentPage++;
     fetchUploads();
@@ -54,19 +54,22 @@ function setupEventListeners() {
 
 async function handleLogin() {
   const password = adminPasswordInput.value;
-  
+
   if (!password) {
     showLoginError('Please enter a password');
     return;
   }
-  
+
   try {
     const response = await fetch(`${SUPABASE_EDGE_FUNCTION_URL}/admin-login`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': SUPABASE_ANON_KEY,
+      },
       body: JSON.stringify({ password })
     });
-    
+
     if (response.ok) {
       const data = await response.json();
       sessionToken = data.token;
@@ -97,7 +100,7 @@ function showDashboard() {
 
 function handleSearchInput(e) {
   searchQuery = e.target.value.trim();
-  
+
   // Debounce search
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => {
@@ -113,20 +116,21 @@ async function fetchUploads() {
     loginSection.classList.remove('hidden');
     return;
   }
-  
+
   try {
     const url = new URL(`${SUPABASE_EDGE_FUNCTION_URL}/admin-list`);
     if (searchQuery) {
       url.searchParams.set('search', searchQuery);
     }
     url.searchParams.set('page', currentPage);
-    
+
     const response = await fetch(url.toString(), {
       headers: {
-        'Authorization': `Bearer ${sessionToken}`
+        'Authorization': `Bearer ${sessionToken}`,
+        'apikey': SUPABASE_ANON_KEY,
       }
     });
-    
+
     if (response.status === 401) {
       // Session expired, redirect to login
       sessionToken = null;
@@ -135,14 +139,14 @@ async function fetchUploads() {
       showLoginError('Session expired. Please login again.');
       return;
     }
-    
+
     if (!response.ok) {
       throw new Error(`Failed to fetch uploads: ${response.statusText}`);
     }
-    
+
     const data = await response.json();
     renderUploads(data.photos, data.hasMore);
-    
+
   } catch (error) {
     console.error('Fetch uploads error:', error);
     uploadsGrid.innerHTML = '<p class="error-text">Failed to load uploads. Please try again.</p>';
@@ -151,20 +155,20 @@ async function fetchUploads() {
 
 function renderUploads(uploads, hasMore) {
   uploadsGrid.innerHTML = '';
-  
+
   if (uploads.length === 0) {
     noResults.classList.remove('hidden');
     pagination.classList.add('hidden');
     return;
   }
-  
+
   noResults.classList.add('hidden');
-  
+
   for (const upload of uploads) {
     const card = createUploadCard(upload);
     uploadsGrid.appendChild(card);
   }
-  
+
   // Update pagination
   updatePagination(hasMore);
 }
@@ -172,27 +176,27 @@ function renderUploads(uploads, hasMore) {
 function createUploadCard(upload) {
   const card = document.createElement('div');
   card.className = 'upload-card-item';
-  
+
   const preview = createPreview(upload);
   const info = createInfo(upload);
   const actions = createActions(upload);
-  
+
   card.appendChild(preview);
   card.appendChild(info);
   card.appendChild(actions);
-  
+
   return card;
 }
 
 async function createPreview(upload) {
   const preview = document.createElement('div');
   preview.className = 'upload-preview';
-  
+
   const ext = getExtension(upload.original_filename);
   const isImage = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext);
   const isVideo = ['mp4', 'mov'].includes(ext);
   const isHeic = ext === 'heic';
-  
+
   if (isImage && !isHeic) {
     // Get signed URL for image preview
     try {
@@ -228,62 +232,62 @@ async function createPreview(upload) {
       </svg>
     `;
   }
-  
+
   return preview;
 }
 
 function createInfo(upload) {
   const info = document.createElement('div');
   info.className = 'upload-info';
-  
+
   const filename = document.createElement('div');
   filename.className = 'upload-filename';
   filename.textContent = upload.original_filename;
   filename.title = upload.original_filename;
-  
+
   const meta = document.createElement('div');
   meta.className = 'upload-meta';
-  
+
   const uploader = upload.uploaded_by ? `Uploaded by: ${escapeHtml(upload.uploaded_by)}` : 'Anonymous';
   const date = new Date(upload.created_at).toLocaleDateString();
   const size = formatFileSize(upload.size);
-  
+
   meta.innerHTML = `
     <div>${escapeHtml(uploader)}</div>
     <div>${date}</div>
     <div>${size}</div>
   `;
-  
+
   info.appendChild(filename);
   info.appendChild(meta);
-  
+
   if (upload.caption) {
     const caption = document.createElement('div');
     caption.className = 'upload-caption';
     caption.textContent = `"${escapeHtml(upload.caption)}"`;
     info.appendChild(caption);
   }
-  
+
   return info;
 }
 
 function createActions(upload) {
   const actions = document.createElement('div');
   actions.className = 'upload-actions';
-  
+
   const downloadButton = document.createElement('button');
   downloadButton.className = 'action-button download-button';
   downloadButton.textContent = 'Download';
   downloadButton.onclick = () => handleDownload(upload.id);
-  
+
   const deleteButton = document.createElement('button');
   deleteButton.className = 'action-button delete-button';
   deleteButton.textContent = 'Delete';
   deleteButton.onclick = () => handleDelete(upload.id, upload.original_filename);
-  
+
   actions.appendChild(downloadButton);
   actions.appendChild(deleteButton);
-  
+
   return actions;
 }
 
@@ -292,10 +296,10 @@ function updatePagination(hasMore) {
     pagination.classList.add('hidden');
     return;
   }
-  
+
   pagination.classList.remove('hidden');
   paginationInfo.textContent = `Page ${currentPage}`;
-  
+
   prevButton.disabled = currentPage === 1;
   nextButton.disabled = !hasMore;
 }
@@ -305,11 +309,12 @@ async function getSignedUrl(photoId) {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${sessionToken}`,
+      'apikey': SUPABASE_ANON_KEY,
       'Content-Type': 'application/json'
     },
     body: JSON.stringify({ photoId })
   });
-  
+
   if (response.status === 401) {
     sessionToken = null;
     dashboardSection.classList.add('hidden');
@@ -317,21 +322,21 @@ async function getSignedUrl(photoId) {
     showLoginError('Session expired. Please login again.');
     throw new Error('Session expired');
   }
-  
+
   if (!response.ok) {
     throw new Error('Failed to get signed URL');
   }
-  
+
   const data = await response.json();
   return data.signedUrl;
 }
 
 async function handleDownload(photoId) {
   if (!sessionToken) return;
-  
+
   try {
     const signedUrl = await getSignedUrl(photoId);
-    
+
     // Create a temporary link to trigger download
     const link = document.createElement('a');
     link.href = signedUrl;
@@ -340,7 +345,7 @@ async function handleDownload(photoId) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
   } catch (error) {
     console.error('Download error:', error);
     alert('Failed to download file. Please try again.');
@@ -349,21 +354,22 @@ async function handleDownload(photoId) {
 
 async function handleDelete(photoId, filename) {
   if (!sessionToken) return;
-  
+
   const confirmed = confirm(`Are you sure you want to delete "${escapeHtml(filename)}"? This action cannot be undone.`);
-  
+
   if (!confirmed) return;
-  
+
   try {
     const response = await fetch(`${SUPABASE_EDGE_FUNCTION_URL}/admin-delete`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${sessionToken}`,
+        'apikey': SUPABASE_ANON_KEY,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ photoId })
     });
-    
+
     if (response.status === 401) {
       sessionToken = null;
       dashboardSection.classList.add('hidden');
@@ -371,14 +377,14 @@ async function handleDelete(photoId, filename) {
       showLoginError('Session expired. Please login again.');
       return;
     }
-    
+
     if (!response.ok) {
       throw new Error('Delete failed');
     }
-    
+
     // Refresh the list
     fetchUploads();
-    
+
   } catch (error) {
     console.error('Delete error:', error);
     alert('Failed to delete file. Please try again.');
