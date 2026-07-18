@@ -57,7 +57,7 @@ serve(async (req) => {
     // Look up photo to get storage path
     const { data: photo, error: photoError } = await supabase
       .from('photos')
-      .select('storage_path')
+      .select('storage_path, archived_at')
       .eq('id', photoId)
       .single()
 
@@ -68,18 +68,21 @@ serve(async (req) => {
       )
     }
 
-    // Delete from storage
-    const { error: storageError } = await supabase
-      .storage
-      .from('elite-memories')
-      .remove([photo.storage_path])
+    // Already archived (purged from Supabase Storage by the sync script) —
+    // nothing left there to delete, just remove the database row.
+    if (!photo.archived_at) {
+      const { error: storageError } = await supabase
+        .storage
+        .from('elite-memories')
+        .remove([photo.storage_path])
 
-    if (storageError) {
-      console.error('Error deleting from storage:', storageError)
-      return new Response(
-        JSON.stringify({ error: 'Failed to delete file from storage' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
+      if (storageError) {
+        console.error('Error deleting from storage:', storageError)
+        return new Response(
+          JSON.stringify({ error: 'Failed to delete file from storage' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        )
+      }
     }
 
     // Delete from database

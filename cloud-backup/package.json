@@ -1,0 +1,16 @@
+{
+  "name": "elite-memories-cloud-backup",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Backs up Elite Memories uploads from Supabase Storage to MEGA via MEGAcmd, and purges old backed-up files from Supabase once storage usage crosses a threshold.",
+  "main": "sync.js",
+  "scripts": {
+    "sync": "node sync.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2",
+    "dotenv": "^16",
+    "ws": "^8"
+  }
+}

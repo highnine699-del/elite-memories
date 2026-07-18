@@ -196,6 +196,18 @@ async function createPreview(upload) {
   const preview = document.createElement('div');
   preview.className = 'upload-preview';
 
+  // Archived files were deleted from Supabase Storage to free up quota —
+  // don't attempt a signed URL, it will just 404. Show where it lives now.
+  if (upload.archived_at) {
+    preview.innerHTML = `
+      <div class="preview-placeholder archived">
+        <div class="archived-icon">☁️</div>
+        <div class="archived-label">Backed up to TeraBox</div>
+      </div>
+    `;
+    return preview;
+  }
+
   const ext = getExtension(upload.original_filename);
   const isImage = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext);
   const isVideo = ['mp4', 'mov'].includes(ext);
@@ -272,6 +284,13 @@ function createInfo(upload) {
     info.appendChild(caption);
   }
 
+  if (upload.archived_at && upload.backup_path) {
+    const archivedPath = document.createElement('div');
+    archivedPath.className = 'upload-archived-path';
+    archivedPath.textContent = `MEGA: ${upload.backup_path}`;
+    info.appendChild(archivedPath);
+  }
+
   return info;
 }
 
@@ -279,17 +298,27 @@ function createActions(upload) {
   const actions = document.createElement('div');
   actions.className = 'upload-actions';
 
-  const downloadButton = document.createElement('button');
-  downloadButton.className = 'action-button download-button';
-  downloadButton.textContent = 'Download';
-  downloadButton.onclick = () => handleDownload(upload.id);
+  if (upload.archived_at) {
+    const openButton = document.createElement('button');
+    openButton.className = 'action-button open-terabox-button';
+    openButton.textContent = upload.backup_link ? 'Open in MEGA' : 'Backed up (no link yet)';
+    openButton.disabled = !upload.backup_link;
+    openButton.onclick = () => {
+      if (upload.backup_link) window.open(upload.backup_link, '_blank');
+    };
+    actions.appendChild(openButton);
+  } else {
+    const downloadButton = document.createElement('button');
+    downloadButton.className = 'action-button download-button';
+    downloadButton.textContent = 'Download';
+    downloadButton.onclick = () => handleDownload(upload.id);
+    actions.appendChild(downloadButton);
+  }
 
   const deleteButton = document.createElement('button');
   deleteButton.className = 'action-button delete-button';
   deleteButton.textContent = 'Delete';
   deleteButton.onclick = () => handleDelete(upload.id, upload.original_filename);
-
-  actions.appendChild(downloadButton);
   actions.appendChild(deleteButton);
 
   return actions;

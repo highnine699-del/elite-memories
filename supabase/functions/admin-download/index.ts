@@ -57,7 +57,7 @@ serve(async (req) => {
     // Look up photo
     const { data: photo, error: photoError } = await supabase
       .from('photos')
-      .select('storage_path')
+      .select('storage_path, archived_at, backup_path, backup_link')
       .eq('id', photoId)
       .single()
 
@@ -65,6 +65,20 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ error: 'Photo not found' }),
         { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    // Already purged from Supabase Storage to free up quota — there's no
+    // object left to sign a URL for. Tell the caller where it actually
+    // lives instead of failing.
+    if (photo.archived_at) {
+      return new Response(
+        JSON.stringify({
+          archived: true,
+          backupPath: photo.backup_path || null,
+          backupLink: photo.backup_link || null,
+        }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
