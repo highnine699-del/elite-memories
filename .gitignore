@@ -1,0 +1,19 @@
+# Secrets — never commit these
+.env
+cloud-backup/.env
+*.env
+!*.env.example
+
+# Dependencies
+node_modules/
+cloud-backup/node_modules/
+
+# Local debugging scripts (not part of the shipped tool)
+cloud-backup/test-*.mjs
+
+# OS/editor cruft
+.DS_Store
+Thumbs.db
+
+# Supabase CLI local state
+supabase/.temp/

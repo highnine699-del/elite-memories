@@ -60,7 +60,14 @@ serve(async (req) => {
 
     // Add search filter if provided
     if (search) {
-      query = query.or(`original_filename.ilike.%${search}%,uploaded_by.ilike.%${search}%,caption.ilike.%${search}%`)
+      // PostgREST's .or() filter syntax uses commas, parens, and percent
+      // signs as structural characters. Strip anything that isn't a normal
+      // search character so a search term can't break or manipulate the
+      // filter structure itself.
+      const safeSearch = search.replace(/[,()%*]/g, '').trim().slice(0, 200)
+      if (safeSearch) {
+        query = query.or(`original_filename.ilike.%${safeSearch}%,uploaded_by.ilike.%${safeSearch}%,caption.ilike.%${safeSearch}%`)
+      }
     }
 
     const { data: photos, error, count } = await query
