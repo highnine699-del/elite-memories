@@ -221,6 +221,14 @@ async function createPreview(upload) {
       img.src = signedUrl;
       img.alt = escapeHtml(upload.original_filename);
       img.loading = 'lazy';
+      img.onerror = () => {
+        // Browser couldn't decode this despite the .jpg/.png extension —
+        // most commonly a HEIC photo that got mislabeled with a JPEG
+        // extension somewhere along the way (phone/share-sheet quirk).
+        // Fall back to the same placeholder used for known-HEIC files
+        // instead of leaving a blank box with no explanation.
+        preview.innerHTML = '<div class="preview-placeholder"><div class="generic-icon">🖼️</div></div>';
+      };
       preview.appendChild(img);
     } catch {
       // Fallback to placeholder if signed URL fails
@@ -234,6 +242,9 @@ async function createPreview(upload) {
       video.src = signedUrl;
       video.controls = true;
       video.preload = 'metadata';
+      video.onerror = () => {
+        preview.innerHTML = '<div class="preview-placeholder"><div class="generic-icon">🎬</div></div>';
+      };
       preview.appendChild(video);
     } catch {
       preview.innerHTML = '<div class="preview-placeholder">🎬</div>';
