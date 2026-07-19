@@ -12,6 +12,56 @@ let currentPage = 1;
 let searchQuery = '';
 let searchTimeout = null;
 
+// --- HEIC preview decoding (client-side, lazy-loaded, concurrency-limited) ---
+// heic-to wraps libheif compiled to WebAssembly. We only pull it in the
+// moment a HEIC/HEIF file actually shows up in a page of results, and we
+// cap how many decodes run at once so a page full of iPhone photos doesn't
+// spin up a dozen WASM decodes simultaneously and lock the tab.
+const HEIC_TO_CDN_URL = 'https://cdn.jsdelivr.net/npm/heic-to@1.5.2/dist/iife/heic-to.js';
+const HEIC_DECODE_TIMEOUT_MS = 12000;
+const MAX_CONCURRENT_HEIC_DECODES = 2;
+
+let heicToLoadPromise = null;
+function loadHeicToLib() {
+  if (heicToLoadPromise) return heicToLoadPromise;
+  heicToLoadPromise = new Promise((resolve, reject) => {
+    if (window.HeicTo) return resolve(window.HeicTo);
+    const script = document.createElement('script');
+    script.src = HEIC_TO_CDN_URL;
+    script.onload = () => resolve(window.HeicTo);
+    script.onerror = () => reject(new Error('Failed to load heic-to library'));
+    document.head.appendChild(script);
+  });
+  return heicToLoadPromise;
+}
+
+let activeHeicDecodes = 0;
+const heicDecodeQueue = [];
+function runWithHeicLimit(decodeFn) {
+  return new Promise((resolve, reject) => {
+    const task = () => {
+      activeHeicDecodes++;
+      decodeFn().then(resolve, reject).finally(() => {
+        activeHeicDecodes--;
+        const next = heicDecodeQueue.shift();
+        if (next) next();
+      });
+    };
+    if (activeHeicDecodes < MAX_CONCURRENT_HEIC_DECODES) {
+      task();
+    } else {
+      heicDecodeQueue.push(task);
+    }
+  });
+}
+
+function withTimeout(promise, ms) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('timed out')), ms)),
+  ]);
+}
+
 // DOM Elements
 const loginSection = document.getElementById('login-section');
 const dashboardSection = document.getElementById('dashboard-section');
@@ -211,9 +261,45 @@ async function createPreview(upload) {
   const ext = getExtension(upload.original_filename);
   const isImage = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext);
   const isVideo = ['mp4', 'mov'].includes(ext);
-  const isHeic = ext === 'heic';
+  const isHeic = ['heic', 'heif'].includes(ext);
 
-  if (isImage && !isHeic) {
+  if (isHeic) {
+    // Real thumbnail via client-side WASM decode, not just a placeholder icon.
+    preview.innerHTML = `
+      <div class="preview-placeholder preview-loading">
+        <div class="preview-spinner"></div>
+      </div>
+    `;
+    try {
+      const signedUrl = await getSignedUrl(upload.id);
+      const [blob, HeicTo] = await Promise.all([
+        fetch(signedUrl).then(r => {
+          if (!r.ok) throw new Error(`fetch failed: ${r.status}`);
+          return r.blob();
+        }),
+        loadHeicToLib(),
+      ]);
+      const jpegBlob = await withTimeout(
+        runWithHeicLimit(() => HeicTo({ blob, type: 'image/jpeg', quality: 0.5 })),
+        HEIC_DECODE_TIMEOUT_MS
+      );
+      const objectUrl = URL.createObjectURL(jpegBlob);
+      const img = document.createElement('img');
+      img.src = objectUrl;
+      img.alt = escapeHtml(upload.original_filename);
+      img.loading = 'lazy';
+      img.onerror = () => {
+        preview.innerHTML = '<div class="preview-placeholder"><div class="generic-icon">🖼️</div></div>';
+      };
+      preview.innerHTML = '';
+      preview.appendChild(img);
+    } catch (err) {
+      // Decode failed or timed out (corrupt file, unsupported HEIC variant,
+      // library failed to load) — fall back to the generic icon rather than
+      // leaving the spinner stuck forever.
+      preview.innerHTML = '<div class="preview-placeholder"><div class="generic-icon">🖼️</div></div>';
+    }
+  } else if (isImage) {
     // Get signed URL for image preview
     try {
       const signedUrl = await getSignedUrl(upload.id);
@@ -243,14 +329,24 @@ async function createPreview(upload) {
       video.controls = true;
       video.preload = 'metadata';
       video.onerror = () => {
-        preview.innerHTML = '<div class="preview-placeholder"><div class="generic-icon">🎬</div></div>';
+        // Almost always an iPhone .mov encoded in HEVC (H.265), which Chrome
+        // and most non-Safari browsers can't decode in a <video> tag — not a
+        // broken file. Converting these needs server-side transcoding
+        // (ffmpeg), a bigger lift than the HEIC case since it can't be done
+        // cheaply client-side; tracked as a follow-up, not fixed here.
+        preview.innerHTML = `
+          <div class="preview-placeholder">
+            <div class="generic-icon">🎬</div>
+            <div class="archived-label">Codec not supported in this browser — download to view</div>
+          </div>
+        `;
       };
       preview.appendChild(video);
     } catch {
       preview.innerHTML = '<div class="preview-placeholder">🎬</div>';
     }
   } else {
-    // HEIC or other - show generic icon
+    // Other/unknown file type - show generic icon
     preview.innerHTML = `
       <svg class="generic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>

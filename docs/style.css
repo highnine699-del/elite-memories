@@ -1950,6 +1950,38 @@ body {
   opacity: 0.45;
 }
 
+.preview-placeholder.archived,
+.preview-loading {
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+
+.archived-icon {
+  font-size: 28px;
+  opacity: 0.6;
+}
+
+.archived-label {
+  font-size: var(--text-xs, 0.75rem);
+  color: var(--color-text-400);
+  text-align: center;
+  padding: 0 var(--sp-3, 12px);
+  line-height: 1.3;
+}
+
+.preview-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--color-surface-3, rgba(255, 255, 255, 0.15));
+  border-top-color: var(--color-text-400);
+  border-radius: 50%;
+  animation: preview-spin 0.8s linear infinite;
+}
+
+@keyframes preview-spin {
+  to { transform: rotate(360deg); }
+}
+
 .upload-info {
   padding: var(--sp-5);
   flex: 1;
