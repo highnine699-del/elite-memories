@@ -119,6 +119,12 @@ function handleDrop(e) {
   e.preventDefault();
   dropZone.classList.remove('drag-over');
 
+  // Trigger drop-confirm ripple animation
+  dropZone.classList.add('drop-confirm');
+  dropZone.addEventListener('animationend', () => {
+    dropZone.classList.remove('drop-confirm');
+  }, { once: true });
+
   const files = Array.from(e.dataTransfer.files);
   handleFiles(files);
 }

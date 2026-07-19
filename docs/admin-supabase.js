@@ -203,7 +203,14 @@ async function fetchUploads() {
   }
 }
 
+let activeObjectUrls = [];
+
 async function renderUploads(uploads, hasMore) {
+  // Release the previous page's decoded HEIC thumbnails before building
+  // the new set — otherwise every page of browsing leaks memory.
+  activeObjectUrls.forEach((url) => URL.revokeObjectURL(url));
+  activeObjectUrls = [];
+
   uploadsGrid.innerHTML = '';
 
   if (uploads.length === 0) {
@@ -284,6 +291,7 @@ async function createPreview(upload) {
         HEIC_DECODE_TIMEOUT_MS
       );
       const objectUrl = URL.createObjectURL(jpegBlob);
+      activeObjectUrls.push(objectUrl);
       const img = document.createElement('img');
       img.src = objectUrl;
       img.alt = escapeHtml(upload.original_filename);

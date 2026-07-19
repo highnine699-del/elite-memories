@@ -7,6 +7,7 @@
   <title>Elite Memories — Admin</title>
   <meta name="description" content="Private admin dashboard for the Elite Memories archive.">
   <meta name="theme-color" content="#08101A">
+  <meta name="robots" content="noindex, nofollow">
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
   <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -18,8 +19,7 @@
   <link rel="stylesheet" href="style.css">
   <style>
     /* -------------------------------------------------------
-       Admin-only styles — scoped here so they don't pollute
-       the main stylesheet.
+       Admin-only styles — scoped here, V5 refined.
        ------------------------------------------------------- */
 
     /* Login screen — vertically centered, card max-width */
@@ -30,21 +30,25 @@
       justify-content: center;
       padding: var(--sp-6);
       padding-top: 100px;
-      /* clear nav */
     }
 
     .admin-login-card {
       width: 100%;
       max-width: 420px;
-      background: var(--color-surface-glass);
-      backdrop-filter: blur(var(--blur-md));
-      -webkit-backdrop-filter: blur(var(--blur-md));
+      background: rgba(10, 17, 28, 0.92);
+      /* richer, more opaque for trust */
+      backdrop-filter: blur(var(--blur-lg));
+      -webkit-backdrop-filter: blur(var(--blur-lg));
       border: 1px solid var(--color-border);
       border-top-color: var(--color-border-bright);
       border-left-color: var(--color-border-bright);
       border-radius: var(--r-2xl);
-      padding: var(--sp-10);
-      box-shadow: var(--sh-xl), inset 0 1px 0 var(--color-border-bright);
+      padding: var(--sp-12) var(--sp-10);
+      /* more vertical breathing room */
+      box-shadow:
+        var(--sh-xl),
+        0 0 100px rgba(79, 140, 255, 0.08),
+        inset 0 1px 0 var(--color-border-bright);
       position: relative;
       overflow: hidden;
       animation: cardUp 0.65s var(--ease-expo-out) both;
@@ -58,7 +62,10 @@
       left: 0;
       right: 0;
       height: 1px;
-      background: linear-gradient(90deg, transparent 0%, var(--color-border-bright) 50%, transparent 100%);
+      background: linear-gradient(90deg,
+          transparent 0%,
+          rgba(255, 255, 255, 0.18) 50%,
+          transparent 100%);
       pointer-events: none;
     }
 
@@ -67,14 +74,14 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: var(--sp-3);
-      margin-bottom: var(--sp-8);
+      gap: var(--sp-4);
+      margin-bottom: var(--sp-10);
       text-align: center;
     }
 
     .login-brand-icon {
-      width: 52px;
-      height: 52px;
+      width: 58px;
+      height: 58px;
       background: var(--color-primary-soft);
       border: 1px solid var(--color-primary-border);
       border-radius: var(--r-lg);
@@ -82,39 +89,59 @@
       align-items: center;
       justify-content: center;
       color: var(--color-primary);
+      box-shadow: 0 0 24px rgba(79, 140, 255, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.1);
     }
 
     .login-brand-name {
       font-family: var(--font-display);
-      font-size: var(--text-xl);
+      font-size: var(--text-2xl);
       font-weight: 700;
-      letter-spacing: -0.025em;
+      letter-spacing: -0.03em;
       color: var(--color-text-100);
     }
 
     .login-brand-sub {
       font-size: var(--text-sm);
       color: var(--color-text-400);
-      margin-top: -var(--sp-1);
+      margin-top: calc(-1 * var(--sp-2));
     }
 
     /* Login button — full width */
     .login-button {
       width: 100%;
-      margin-top: var(--sp-5);
+      margin-top: var(--sp-6);
       background: linear-gradient(155deg, #5F9AFF 0%, #3A72E0 55%, #2A5EC9 100%);
       color: #fff;
-      padding: 0.75rem var(--sp-6);
+      padding: 0.875rem var(--sp-6);
+      /* taller — 44px+ */
       border: none;
       border-radius: var(--r-lg);
       font-size: var(--text-base);
       font-weight: 600;
       cursor: pointer;
+      position: relative;
+      overflow: hidden;
       box-shadow: var(--sh-glow), inset 0 1px 0 rgba(255, 255, 255, 0.20);
       transition:
-        transform var(--dur-fast) var(--ease-spring),
-        box-shadow var(--dur-normal) var(--ease-default);
+        transform 180ms var(--ease-spring),
+        box-shadow 250ms var(--ease-default);
       will-change: transform;
+    }
+
+    /* Light sweep */
+    .login-button::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -75%;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(105deg,
+          transparent 0%,
+          rgba(255, 255, 255, 0.12) 50%,
+          transparent 100%);
+      transform: skewX(-20deg);
+      transition: left 400ms var(--ease-default);
     }
 
     .login-button:hover {
@@ -122,8 +149,12 @@
       box-shadow: var(--sh-glow-lg), 0 5px 16px rgba(0, 0, 0, 0.40);
     }
 
+    .login-button:hover::after {
+      left: 125%;
+    }
+
     .login-button:active {
-      transform: scale(0.98);
+      transform: scale(0.98) translateY(1px);
     }
 
     .login-button:focus-visible {
@@ -148,7 +179,7 @@
       font-family: var(--font-display);
       font-size: clamp(1.75rem, 4vw, 2.75rem);
       font-weight: 700;
-      letter-spacing: -0.035em;
+      letter-spacing: -0.04em;
       color: var(--color-text-100);
       margin-bottom: var(--sp-2);
     }
@@ -156,7 +187,7 @@
     .dashboard-subtitle {
       font-size: var(--text-base);
       color: var(--color-text-400);
-      line-height: 1.6;
+      line-height: 1.65;
     }
 
     /* Search bar wrapper */
@@ -172,11 +203,38 @@
       transform: translateY(-50%);
       color: var(--color-text-400);
       pointer-events: none;
+      transition: color 150ms var(--ease-default);
+    }
+
+    .search-wrap:focus-within .search-icon {
+      color: var(--color-primary);
     }
 
     .search-input {
       width: 100%;
-      padding: var(--sp-3) var(--sp-4) var(--sp-3) calc(var(--sp-4) + 28px);
+      padding: calc(var(--sp-3) + 1px) var(--sp-4) calc(var(--sp-3) + 1px) calc(var(--sp-4) + 28px);
+      background: rgba(13, 21, 32, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-top-color: rgba(255, 255, 255, 0.13);
+      border-radius: var(--r-lg);
+      color: var(--color-text-100);
+      font-size: var(--text-base);
+      font-family: var(--font-sans);
+      transition:
+        border-color 150ms var(--ease-default),
+        box-shadow 180ms var(--ease-default),
+        background 150ms var(--ease-default);
+    }
+
+    .search-input:focus {
+      outline: none;
+      background: rgba(13, 21, 32, 1);
+      border-color: var(--color-border-focus);
+      box-shadow: 0 0 0 3px rgba(79, 140, 255, 0.12), 0 2px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .search-input::placeholder {
+      color: var(--color-text-400);
     }
 
     /* Pagination row */
@@ -186,6 +244,21 @@
       justify-content: center;
       gap: var(--sp-5);
       padding: var(--sp-8) 0;
+    }
+
+    /* Pagination buttons — larger hit target */
+    .pagination .button-secondary {
+      min-height: 44px;
+      min-width: 120px;
+      padding: var(--sp-2) var(--sp-5);
+      font-size: var(--text-base);
+      font-weight: 500;
+    }
+
+    .pagination .button-secondary:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      transform: none !important;
     }
 
     /* Empty/no-results state */
@@ -224,7 +297,12 @@
       }
 
       .admin-login-card {
-        padding: var(--sp-6);
+        padding: var(--sp-8) var(--sp-6);
+      }
+
+      .pagination .button-secondary {
+        min-width: 90px;
+        font-size: var(--text-sm);
       }
     }
   </style>
@@ -238,6 +316,8 @@
     <div class="bg-lights"></div>
     <div class="bg-hero-glow"></div>
   </div>
+  <div class="background-vignette" aria-hidden="true"></div>
+  <div class="background-dust" aria-hidden="true"></div>
 
   <a href="#main-content" class="skip-link">Skip to main content</a>
 

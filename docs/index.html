@@ -9,6 +9,27 @@
     content="A private memory archive for Landmark University. Preserve the moments that will become priceless years from now.">
   <meta name="theme-color" content="#08101A">
 
+  <!-- Keep this out of search results entirely — link previews below don't
+       need indexing to work, WhatsApp/Telegram/Discord ignore robots
+       directives since they're just generating a one-time preview card. -->
+  <meta name="robots" content="noindex, nofollow">
+
+  <!-- Link previews (WhatsApp, Telegram, Discord, iMessage, etc.) -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Elite Memories">
+  <meta property="og:title" content="Elite Memories — A Private Archive">
+  <meta property="og:description"
+    content="A private memory archive for Landmark University. Preserve the moments that will become priceless years from now.">
+  <meta property="og:image" content="https://highnine699-del.github.io/elite-memories/icons/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:url" content="https://highnine699-del.github.io/elite-memories/index.html">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Elite Memories — A Private Archive">
+  <meta name="twitter:description"
+    content="A private memory archive for Landmark University. Preserve the moments that will become priceless years from now.">
+  <meta name="twitter:image" content="https://highnine699-del.github.io/elite-memories/icons/og-image.png">
+
   <!-- PWA -->
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
@@ -28,12 +49,14 @@
 
 <body>
 
-  <!-- BACKGROUND — 7 depth layers -->
+  <!-- BACKGROUND — 7 depth layers + vignette + dust -->
   <div class="background" aria-hidden="true">
     <div class="bg-radial"></div>
     <div class="bg-lights"></div>
     <div class="bg-hero-glow"></div>
   </div>
+  <div class="background-vignette" aria-hidden="true"></div>
+  <div class="background-dust" aria-hidden="true"></div>
 
   <a href="#main-content" class="skip-link">Skip to main content</a>
 
@@ -123,14 +146,16 @@
         </p>
 
         <div class="hero-cta">
-          <a href="#upload" class="button button-primary icon-with-text">
-            <svg class="icon icon-md" viewBox="0 0 24 24" aria-hidden="true">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-              <polyline points="17 8 12 3 7 8" />
-              <line x1="12" y1="3" x2="12" y2="15" />
-            </svg>
-            Preserve a Memory
-          </a>
+          <div class="cta-glow-wrap">
+            <a href="#upload" class="button button-primary icon-with-text">
+              <svg class="icon icon-md" viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="17 8 12 3 7 8" />
+                <line x1="12" y1="3" x2="12" y2="15" />
+              </svg>
+              Preserve a Memory
+            </a>
+          </div>
           <a href="#about" class="button button-secondary icon-with-text">
             <svg class="icon icon-md" viewBox="0 0 24 24" aria-hidden="true">
               <circle cx="12" cy="12" r="10" />
