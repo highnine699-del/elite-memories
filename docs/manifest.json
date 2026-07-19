@@ -1,0 +1,37 @@
+{
+  "name": "Elite Memories — Landmark University",
+  "short_name": "Elite Memories",
+  "description": "A private, permanent archive for Landmark University — preserve photos and videos in full original quality.",
+  "start_url": "/elite-memories/index.html",
+  "scope": "/elite-memories/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#08101A",
+  "theme_color": "#08101A",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
