@@ -32,7 +32,7 @@ serve(async (req) => {
       )
     }
 
-    if (password !== adminPassword) {
+    if (!(await timingSafeEqual(password, adminPassword))) {
       return new Response(
         JSON.stringify({ error: 'Invalid password' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -45,7 +45,14 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
-    const ip = req.headers.get('CF-Connecting-IP') || 'unknown'
+    // CF-Connecting-IP is Cloudflare-specific — this project moved to
+    // Supabase/GitHub Pages a while back and this was never updated, so it
+    // was always empty and every request fell into one shared 'unknown'
+    // rate-limit bucket. x-forwarded-for is the standard header Supabase's
+    // edge network actually populates; it can contain a comma-separated
+    // chain, the client's real IP is the first entry.
+    const forwardedFor = req.headers.get('x-forwarded-for')
+    const ip = forwardedFor?.split(',')[0].trim() || req.headers.get('CF-Connecting-IP') || 'unknown'
     const ipHash = await hashIP(ip)
     
     // Check rate limit (10 attempts per hour)
@@ -111,4 +118,24 @@ async function hashIP(ip: string): Promise<string> {
   const hashBuffer = await crypto.subtle.digest('SHA-256', data)
   const hashArray = Array.from(new Uint8Array(hashBuffer))
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
+// Plain `!==` on secrets is a timing side-channel in theory (comparison
+// short-circuits on first mismatched character). Practical risk here is
+// low — network jitter alone swamps the signal — but it's a one-line fix:
+// hash both sides to a fixed length first, so comparison time no longer
+// depends on where the strings first differ.
+async function timingSafeEqual(a: string, b: string): Promise<boolean> {
+  const encoder = new TextEncoder()
+  const [hashA, hashB] = await Promise.all([
+    crypto.subtle.digest('SHA-256', encoder.encode(a)),
+    crypto.subtle.digest('SHA-256', encoder.encode(b)),
+  ])
+  const bytesA = new Uint8Array(hashA)
+  const bytesB = new Uint8Array(hashB)
+  let diff = 0
+  for (let i = 0; i < bytesA.length; i++) {
+    diff |= bytesA[i] ^ bytesB[i]
+  }
+  return diff === 0
 }
